@@ -1,0 +1,104 @@
+diff -Naurp ocf/resource.d/suse/SAPHana ocf.new/resource.d/suse/SAPHana
+--- ocf/resource.d/suse/SAPHana	2020-11-27 20:16:49.675859143 +0900
++++ ocf.new/resource.d/suse/SAPHana	2020-11-27 20:13:19.027980602 +0900
+@@ -871,6 +871,7 @@ function saphana_init() {
+             DIR_EXECUTABLE="$OCF_RESKEY_DIR_EXECUTABLE"
+         fi
+     fi
++    DIR_EXECUTABLE="/usr/sap/hostctrl/exe/"
+     SAPSTARTSRV="$DIR_EXECUTABLE/sapstartsrv"
+     SAPCONTROL="$DIR_EXECUTABLE/sapcontrol"
+ 
+@@ -998,6 +999,7 @@ function check_sapstartsrv() {
+             ocf_is_probe && rc=$OCF_NOT_RUNNING
+         fi
+     fi
++    rc=$OCF_SUCCESS    
+     return $rc
+ }
+ 
+@@ -1023,6 +1025,8 @@ function cleanup_instance() {
+ function check_for_primary() {
+     super_ocf_log info "FLOW $FUNCNAME ($*)"
+     local rc=$HANA_STATE_DEFECT
++    rc=$HANA_STATE_PRIMARY
++    return $rc
+     # TODO: PRIO 3: Check beginning from which SPS does SAP support HDBSettings.sh?
+     # TODO: Limit the runtime of hdbnsutil and use getParameter.py as fallback
+     # TODO: PRIO2: Maybe we need to use a fallback interface when hdbnsutil does not answer properly -> lookup in config files?
+@@ -1315,6 +1319,7 @@ function saphana_start() {
+     local lastSrHook
+     check_sapstartsrv
+     rc=$?
++    return $OCF_SUCCESS0
+     #
+     # DONE: ASK: PRIO5: For SCALE-OUT - do we need to use an other call like StartSystem? Or better to use the HDB command?
+     #
+@@ -1426,6 +1431,7 @@ function saphana_start_primary()
+     local rc=0
+     local lpa_dec=4
+     local lpa_advice=""
++    return $OCF_SUCCESS
+     #
+     # we will be a master (PRIMARY) so checking, if the is an OTHER master
+     #
+@@ -1664,6 +1670,7 @@ function saphana_start_secondary()
+     local primary_status sync_attr score_master rc=$OCF_NOT_RUNNING
+     local sqlrc;
+     set_crm_master 0
++    return $OCF_SUCCESS
+     #
+     ####### LPA - begin
+     #
+@@ -1723,6 +1730,7 @@ function saphana_check_local_instance()
+     super_ocf_log info "FLOW $FUNCNAME ($*)"
+     check_sapstartsrv
+     rc=$?
++    rc=$OCF_SUCCESS
+     if [ $rc -eq $OCF_SUCCESS ]
+     then
+       output=$($SAPCONTROL -nr $InstanceNr -function GetProcessList -format script)
+@@ -2074,6 +2082,9 @@ function saphana_monitor_primary()
+     local lss
+     local remoreSync=""
+     local my_role=""
++    # debug master
++    rc=$OCF_RUNNING_MASTER
++    return $rc
+     #
+     # OK, we are running/are configured as HANA PRIMARY
+     #
+@@ -2438,7 +2449,8 @@ function saphana_monitor_clone() {
+     local lpaRc=0
+     local mRc=0
+     local myMaster=-1
+-
++    rc=$OCF_RUNNING_MASTER    
++    return $rc
+     my_role=$(get_hana_attribute ${NODENAME} ${ATTR_NAME_HANA_ROLES[@]})
+     my_sync=$(get_SRHOOK "$sr_name" "$NODENAME")
+ 
+diff -Naurp ocf/resource.d/suse/SAPHanaTopology ocf.new/resource.d/suse/SAPHanaTopology
+--- ocf/resource.d/suse/SAPHanaTopology	2020-11-27 20:17:09.131107768 +0900
++++ ocf.new/resource.d/suse/SAPHanaTopology	2020-11-27 20:13:24.803749167 +0900
+@@ -651,6 +651,8 @@ function sht_init() {
+ function check_for_primary() {
+     super_ocf_log info "FLOW $FUNCNAME ($*)"
+     local rc=0
++    rc=$HANA_STATE_PRIMARY
++    return $rc
+     super_ocf_log debug "DBG: check_for_primary: srmode=$srmode"
+     case "$srmode" in
+        primary )
+@@ -775,6 +777,11 @@ function sht_stop() {
+ function sht_monitor() {
+     super_ocf_log info "FLOW $FUNCNAME ($*)"
+     local rc=0
++    # sleep if the file exists
++    if [ -f /root/sleepSAPTopology ]; then
++        sleep 6000
++    fi
++
+     # check for old status file
+     if [ -f $HA_RSCTMP/SAPHana/SAPTopologyON ]; then
+         rm $HA_RSCTMP/SAPHana/SAPTopologyON

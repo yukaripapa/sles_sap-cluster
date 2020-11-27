@@ -1,0 +1,52 @@
+node 169018205: test93 \
+	attributes standby=off
+node 169018206: test94 \
+	attributes standby=off lpa_ndb_lpt=10
+primitive admin-ip IPaddr2 \
+	params ip=10.19.3.92 \
+	op monitor interval=10 timeout=20 \
+	meta target-role=Started
+primitive rsc_SAPHanaTopology_NDB_HDB00 ocf:suse:SAPHanaTopology \
+	params SID=NDB InstanceNumber=00 \
+	op monitor interval=10 timeout=600 \
+	op start interval=0 timeout=600 \
+	op stop interval=0 timeout=300
+primitive rsc_SAPHana_NDB_HDB00 ocf:suse:SAPHana \
+	params SID=NDB InstanceNumber=00 PREFER_SITE_TAKEOVER=true AUTOMATED_REGISTER=false DUPLICATE_PRIMARY_TIMEOUT=7200 \
+	op start interval=0 timeout=3600 \
+	op stop interval=0 timeout=3600 \
+	op promote interval=0 timeout=3600 \
+	op monitor interval=60 role=Master timeout=700 \
+	op monitor interval=61 role=Slave timeout=700
+#
+# production HANA
+#
+primitive rsc_ip_NDB_HDB00 IPaddr2 \
+	params ip=10.19.3.90 cidr_netmask=24 \
+	op start timeout=20 interval=0 \
+	op stop timeout=20 interval=0 \
+	op monitor interval=10 timeout=20 \
+	meta target-role=Started
+primitive stonith-sbd stonith:external/sbd \
+	params pcmk_delay_max=30s \
+	meta target-role=Started
+ms msl_SAPHana_NDB_HDB00 rsc_SAPHana_NDB_HDB00 \
+	meta clone-max=2 clone-node-max=1 interleave=true target-role=Started
+clone cln_SAPHanaTopology_NDB_HDB00 rsc_SAPHanaTopology_NDB_HDB00 \
+	meta clone-node-max=1 interleave=true target-role=Started
+colocation col_saphana_ip_NDB_HDB00 2000: rsc_ip_NDB_HDB00:Started msl_SAPHana_NDB_HDB00:Master
+order ord_SAPHana_NDB_HDB00 Optional: cln_SAPHanaTopology_NDB_HDB00 msl_SAPHana_NDB_HDB00
+property cib-bootstrap-options: \
+	have-watchdog=true \
+	dc-version="2.0.4+20200616.2deceaa3a-3.3.1-2.0.4+20200616.2deceaa3a" \
+	cluster-infrastructure=corosync \
+	cluster-name=sapcluster \
+	stonith-enabled=true \
+	maintenance-mode=false \
+	last-lrm-refresh=1606475072
+rsc_defaults rsc-options: \
+	resource-stickiness=1000 \
+	migration-threshold=5000
+op_defaults op-options: \
+	timeout=600 \
+	record-pending=true
