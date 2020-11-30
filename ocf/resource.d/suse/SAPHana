@@ -2083,8 +2083,8 @@ function saphana_monitor_primary()
     local remoreSync=""
     local my_role=""
     # debug master
-    rc=$OCF_RUNNING_MASTER
-    return $rc
+    #return $OCF_SUCCESS
+    #return $OCF_RUNNING_MASTER
     #
     # OK, we are running/are configured as HANA PRIMARY
     #
@@ -2327,6 +2327,8 @@ function saphana_monitor_secondary()
     fi
     promote_attr=$(get_hana_attribute ${NODENAME} ${ATTR_NAME_HANA_CLONE_STATE[@]})
     super_ocf_log debug "DBG: saphana_monitor_secondary: $ATTR_NAME_HANA_CLONE_STATE=$promote_attr"
+    #rc=$OCF_SUCCESS
+    #return $rc
     if [ -z "$promote_attr" ]; then
         init_attribute=1
         #  DONE: PRIO3: do we need to inizialize also the DEMOTED attribute value?
@@ -2449,7 +2451,7 @@ function saphana_monitor_clone() {
     local lpaRc=0
     local mRc=0
     local myMaster=-1
-    rc=$OCF_RUNNING_MASTER    
+    rc=$OCF_SUCCESS
     return $rc
     my_role=$(get_hana_attribute ${NODENAME} ${ATTR_NAME_HANA_ROLES[@]})
     my_sync=$(get_SRHOOK "$sr_name" "$NODENAME")
