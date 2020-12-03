@@ -2,14 +2,23 @@
 Building STUB tools for SAP HANA cluster on SLES_SAP
 
 1. Overwrite SAPHana,SAPHanaTopology to /usr/lib/ocf/resource.d/
-2. Place stub commands
-   # rsync -av bin/ /bin/
-   # rsync -av usr/ /usr/
+```
+# rsync -av ocf/ /usr/lib/ocf/
+```
+2. Place stub tools
+```
+# rsync -av bin/ /bin/
+# rsync -av usr/ /usr/
+```
 3. Create SAP-HANA resource agents with sles-sap.pcmk template
-   # crm configure edit
-   Paste texts from content of "sles-sap.pcmk"
+```
+# crm configure edit
+```
+Paste texts from content of "sles-sap.pcmk"
    write & exit
 4. You can see SAP-HANA cluster on SLES_SAP without SAP
+
+```
    # crm_mon
    
    Cluster Summary:
@@ -32,3 +41,4 @@ Active Resources:
     * Slaves: [ test93 ]
   * Clone Set: cln_SAPHanaTopology_NDB_HDB00 [rsc_SAPHanaTopology_NDB_HDB00]:
     * Started: [ test93 test94 ]
+```
