@@ -16,6 +16,7 @@ Building STUB tools for SAP HANA cluster on SLES_SAP
 ```
 Paste texts from content of "sles-sap.pcmk"
    write & exit
+
 4. You can see SAP-HANA cluster on SLES_SAP without SAP
 
 ```
