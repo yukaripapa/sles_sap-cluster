@@ -1303,6 +1303,10 @@ function saphana_status() {
     local binDeam="hdb.sap${SIDInstanceName}" rc=0
     binDeam=${binDeam:0:15}   # Process name is limited to the first 15 characters
     if pgrep $binDeam 1>/dev/null; then rc=$OCF_SUCCESS; else rc=$OCF_NOT_RUNNING; fi
+    # sleep if the file exists
+    if [ -f /root/sleepSAP ]; then
+        sleep 6000
+    fi
     return $rc
 }
 
@@ -1319,7 +1323,7 @@ function saphana_start() {
     local lastSrHook
     check_sapstartsrv
     rc=$?
-    return $OCF_SUCCESS0
+    return $OCF_SUCCESS
     #
     # DONE: ASK: PRIO5: For SCALE-OUT - do we need to use an other call like StartSystem? Or better to use the HDB command?
     #
@@ -1431,7 +1435,8 @@ function saphana_start_primary()
     local rc=0
     local lpa_dec=4
     local lpa_advice=""
-    return $OCF_SUCCESS
+    return $HANA_STATE_PRIMARY
+#    return $OCF_SUCCESS
     #
     # we will be a master (PRIMARY) so checking, if the is an OTHER master
     #
@@ -2084,7 +2089,7 @@ function saphana_monitor_primary()
     local my_role=""
     # debug master
     #return $OCF_SUCCESS
-    #return $OCF_RUNNING_MASTER
+    return $OCF_RUNNING_MASTER
     #
     # OK, we are running/are configured as HANA PRIMARY
     #
@@ -2451,8 +2456,8 @@ function saphana_monitor_clone() {
     local lpaRc=0
     local mRc=0
     local myMaster=-1
-    rc=$OCF_SUCCESS
-    return $rc
+    #rc=$OCF_RUNNING_MASTER
+    #return $rc
     my_role=$(get_hana_attribute ${NODENAME} ${ATTR_NAME_HANA_ROLES[@]})
     my_sync=$(get_SRHOOK "$sr_name" "$NODENAME")
 
