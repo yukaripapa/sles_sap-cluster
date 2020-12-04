@@ -9,8 +9,8 @@ site id: 1
 site name: WALLDORF
 Host Mappings:
 ~~~~~~~~~~~~~~
-test94 ->[WALLDORF] test93
-test93 ->[WALLDORF] test94
+node1 ->[WALLDORF] node2
+node2 ->[WALLDORF] node1
 done.
 site=WALLDORF
 mode=primary
